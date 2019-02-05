@@ -29,8 +29,8 @@ class ProjectDetailViewModel @Inject constructor(private val projectRepository: 
 
     fun setProjectId(projectId: String) {
         if (_projectId.value != projectId) {
-        }
             _projectId.value = projectId
+        }
     }
 }
 
