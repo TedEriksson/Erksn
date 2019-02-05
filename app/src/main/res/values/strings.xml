@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Erksn</string>
+    <string name="title_portfolio">Portfolio</string>
+    <string name="title_contact">Contact</string>
+    <string name="logo">Ted\nEriksson</string>
+    <string name="project">Project</string>
+    <string name="open_in_play_store">Open in Play Store</string>
+    <string name="error_message_retry">No Internet Connection</string>
+    <string name="error_message_bail">Something went wrong</string>
+    <string name="retry">Retry</string>
+</resources>

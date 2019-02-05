@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/nav_graph"
+            app:startDestination="@id/portfolioFragment">
+
+    <fragment
+            android:id="@+id/portfolioFragment"
+            android:name="io.erksn.portfolio.ui.portfolio.PortfolioFragment"
+            android:label="PortfolioFragment">
+        <action
+                android:id="@+id/action_portfolioFragment_to_projectDetailFragment"
+                app:destination="@id/projectDetailFragment"
+                app:enterAnim="@anim/nav_slide_up"
+                app:popEnterAnim="@anim/nav_static"
+                app:popExitAnim="@anim/nav_slide_down"
+                app:exitAnim="@anim/nav_static"/>
+    </fragment>
+    <fragment
+            android:id="@+id/projectDetailFragment"
+            android:name="io.erksn.portfolio.ui.project.ProjectDetailFragment"
+            android:label="">
+        <argument
+                android:name="projectId"
+                app:argType="string"/>
+    </fragment>
+</navigation>
