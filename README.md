@@ -1,5 +1,6 @@
 # Erksn App
-Portfolio and Playground
+_Portfolio and Playground_
+
 An Android Version of [erksn.io](http://erksn.io)
 
 ## Technologies Used:
