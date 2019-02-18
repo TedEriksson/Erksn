@@ -25,6 +25,8 @@ class PortfolioFragment: BaseFragment() {
 
     lateinit var recyclerView: EpoxyRecyclerView
 
+    var projects = emptyList<Project>()
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_portfolio, container, false)
     }
@@ -33,8 +35,6 @@ class PortfolioFragment: BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         recyclerView = view.findViewById(R.id.recycler)
-
-        var projects = emptyList<Project>()
 
         recyclerView.setController(object : EpoxyController() {
             override fun buildModels() {
@@ -69,14 +69,27 @@ class PortfolioFragment: BaseFragment() {
             }
         })
 
-        viewModel.state.observe(this, Observer {
-            when (it) {
-                is PortfolioState.Loading -> projects = emptyList()
-                is PortfolioState.Data -> projects = it.projects
-                is PortfolioState.Error.Retry -> showErrorSnackbar(R.string.error_message_retry, canRetry = true)
-                is PortfolioState.Error.Bail -> showErrorSnackbar(R.string.error_message_bail, canRetry = false)
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+
+        viewModel.data.observe(this, Observer {
+            projects = when (it) {
+                is PortfolioState.Data.Loading -> emptyList()
+                is PortfolioState.Data.Done -> it.projects
             }
             recyclerView.requestModelBuild()
+        })
+
+        viewModel.errors.observe(this, Observer {
+            if (!it.isHandled) {
+                it.handle()
+                when (it) {
+                    is PortfolioState.Error.Retry -> showErrorSnackbar(R.string.error_message_retry, canRetry = true)
+                    is PortfolioState.Error.Bail -> showErrorSnackbar(R.string.error_message_bail, canRetry = false)
+                }
+            }
         })
     }
 

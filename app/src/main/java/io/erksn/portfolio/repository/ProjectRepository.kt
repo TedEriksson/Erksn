@@ -1,15 +1,10 @@
 package io.erksn.portfolio.repository
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import io.erksn.portfolio.data.api.ErksnService
 import io.erksn.portfolio.data.api.model.Project
-import io.erksn.portfolio.viewmodel.map
 import kotlinx.coroutines.*
 import retrofit2.HttpException
 import java.io.IOException
-import java.lang.Exception
-import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.CoroutineContext
@@ -17,55 +12,40 @@ import kotlin.coroutines.CoroutineContext
 @Singleton
 class ProjectRepository @Inject constructor(private val erksnService: ErksnService) : CoroutineScope {
 
-    private var inflightRequest: Job? = null
+    override val coroutineContext: CoroutineContext = Dispatchers.IO
 
-    private val projects = MutableLiveData<Result<List<Project>>>()
+    private var projects: Deferred<ProjectResult<List<Project>>> = createProjectRequestAsync()
 
-    override val coroutineContext: CoroutineContext
-        get() = Dispatchers.Main
-
-    fun projectById(projectId: String): LiveData<Result<Optional<Project>>> {
-        return projects.map { projectList ->
-            projectList.fold(
-                onSuccess =  { list ->
-                    Result.success(Optional.ofNullable(list.find { it.id == projectId }))
-                },
-                onFailure = {
-                    Result.failure(it)
-                }
-            )
-        }.also {
-            startRequestIfNotRunning()
+    suspend fun projectById(projectId: String): ProjectResult<Project?> {
+        return when(val result = projects.await()) {
+            is ProjectResult.Success -> ProjectResult.Success(result.data.find { it.id == projectId })
+            is ProjectResult.Failure -> ProjectResult.Failure(result.canRetry)
         }
     }
 
-    fun projects(): LiveData<Result<List<Project>>> {
-        return projects.also {
-            startRequestIfNotRunning()
-        }
+    suspend fun projects(): ProjectResult<List<Project>> {
+        return projects.await()
     }
 
-    fun refreshProjects() {
-        startNewRequest()
+    fun clearProjects() {
+        projects = createProjectRequestAsync()
     }
 
-    private fun startRequestIfNotRunning() {
-        if (inflightRequest == null) startNewRequest()
-    }
-
-    private fun startNewRequest() = launch {
-        inflightRequest?.cancelAndJoin()
-        inflightRequest = this@ProjectRepository.launch {
-            projects.value = try {
-                Result.success(erksnService.getProjects().await().projects)
-            } catch (e: Exception) {
-                when (e) {
-                    is IOException, is HttpException -> Result.failure(e)
-                    else -> throw e
-                }
+    private fun createProjectRequestAsync(): Deferred<ProjectResult<List<Project>>> = async(start = CoroutineStart.LAZY) {
+        try {
+            ProjectResult.Success(erksnService.getProjects().await().projects)
+        } catch (e: Exception) {
+            when (e) {
+                is IOException -> ProjectResult.Failure<List<Project>>(canRetry = true)
+                is HttpException -> ProjectResult.Failure(canRetry = false)
+                else -> throw e
             }
         }
     }
+}
 
+sealed class ProjectResult<T> {
+    data class Success<T>(val data: T) : ProjectResult<T>()
+    data class Failure<T>(val canRetry: Boolean) : ProjectResult<T>()
 }
 
