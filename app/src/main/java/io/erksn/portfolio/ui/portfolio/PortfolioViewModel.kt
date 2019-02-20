@@ -11,6 +11,7 @@ import io.erksn.portfolio.di.ViewModelKey
 import io.erksn.portfolio.data.api.model.Project
 import io.erksn.portfolio.repository.ProjectRepository
 import io.erksn.portfolio.repository.ProjectResult
+import io.erksn.portfolio.ui.base.BaseViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
@@ -21,7 +22,7 @@ import javax.inject.Inject
 
 class PortfolioViewModel @Inject constructor(
     private val projectRepository: ProjectRepository
-) : ViewModel(), CoroutineScope by MainScope() {
+) : BaseViewModel() {
 
     init {
         retryProjects()
@@ -51,11 +52,6 @@ class PortfolioViewModel @Inject constructor(
                 }
             }
         }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        cancel()
     }
 }
 

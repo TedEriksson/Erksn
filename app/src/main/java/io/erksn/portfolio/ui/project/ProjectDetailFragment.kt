@@ -1,6 +1,8 @@
 package io.erksn.portfolio.ui.project
 
+import android.content.Intent
 import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +16,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
 import com.bumptech.glide.Glide
 import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.button.MaterialButton
 import io.erksn.portfolio.R
 import io.erksn.portfolio.ui.base.BaseFragment
 import java.lang.IllegalArgumentException
@@ -34,23 +37,39 @@ class ProjectDetailFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        view.translationZ = 100f
+        view.translationZ = 100f // For transition to be above list screen
 
         val navController = findNavController()
         val appBarConfiguration = AppBarConfiguration(navController.graph)
         view.findViewById<Toolbar>(R.id.toolbar).setupWithNavController(navController, appBarConfiguration)
+    }
 
-        val title = view.findViewById<TextView>(R.id.title)
-        val appBar = view.findViewById<AppBarLayout>(R.id.app_bar)
-        val imageView = view.findViewById<ImageView>(R.id.image)
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
 
-        viewModel.project.observe(this, Observer {
-            title.text = it.title
-            title.setTextColor(Color.parseColor(it.textColor))
+        val title = requireView().findViewById<TextView>(R.id.title)
+        val appBar = requireView().findViewById<AppBarLayout>(R.id.app_bar)
+        val imageView = requireView().findViewById<ImageView>(R.id.image)
+        val tagline = requireView().findViewById<TextView>(R.id.tagline)
+        val playStoreButton = requireView().findViewById<MaterialButton>(R.id.playStoreLink)
 
-            appBar.setBackgroundColor(Color.parseColor(it.backgroundColor))
+        viewModel.project.observe(viewLifecycleOwner, Observer { project ->
+            title.text = project.title
+            title.setTextColor(Color.parseColor(project.textColor))
 
-            Glide.with(imageView).load(it.imageUrl).into(imageView)
+            appBar.setBackgroundColor(Color.parseColor(project.backgroundColor))
+
+            Glide.with(imageView).load(project.imageUrl).into(imageView)
+
+            tagline.visibility = if (project.tagline != null) View.VISIBLE else View.GONE
+            tagline.text = project.tagline
+
+            playStoreButton.visibility = if (project.appUrl != null) View.VISIBLE else View.GONE
+            playStoreButton.setOnClickListener {
+                startActivity(Intent(Intent.ACTION_VIEW).apply {
+                    data = Uri.parse(project.appUrl)
+                })
+            }
         })
 
         viewModel.setProjectId(projectId)

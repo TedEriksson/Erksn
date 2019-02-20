@@ -11,12 +11,12 @@ import io.erksn.portfolio.di.ViewModelKey
 import io.erksn.portfolio.data.api.model.Project
 import io.erksn.portfolio.repository.ProjectRepository
 import io.erksn.portfolio.repository.ProjectResult
+import io.erksn.portfolio.ui.base.BaseViewModel
 import io.erksn.portfolio.viewmodel.switchMap
 import kotlinx.coroutines.*
 import javax.inject.Inject
 
-class ProjectDetailViewModel @Inject constructor(private val projectRepository: ProjectRepository) : ViewModel(),
-    CoroutineScope by MainScope() {
+class ProjectDetailViewModel @Inject constructor(private val projectRepository: ProjectRepository) : BaseViewModel() {
 
     private val _projectId = MutableLiveData<String>()
 
@@ -38,11 +38,6 @@ class ProjectDetailViewModel @Inject constructor(private val projectRepository: 
         if (_projectId.value != projectId) {
             _projectId.value = projectId
         }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        cancel()
     }
 }
 

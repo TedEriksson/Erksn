@@ -30,8 +30,6 @@ abstract class ProjectModel : EpoxyModelWithHolder<ProjectHolder>() {
         ViewCompat.setTransitionName(holder.overlay, null)
 
         holder.card.setOnClickListener {
-            ViewCompat.setTransitionName(holder.card, "project_card")
-            ViewCompat.setTransitionName(holder.overlay, "project_overlay")
             listener(holder)
         }
 

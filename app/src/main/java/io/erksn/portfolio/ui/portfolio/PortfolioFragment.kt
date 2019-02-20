@@ -19,11 +19,11 @@ import io.erksn.portfolio.ui.portfolio.model.logo
 import io.erksn.portfolio.ui.portfolio.model.project
 
 
-class PortfolioFragment: BaseFragment() {
+class PortfolioFragment : BaseFragment() {
 
     private val viewModel: PortfolioViewModel by injectedViewModels()
 
-    lateinit var recyclerView: EpoxyRecyclerView
+    private lateinit var recyclerView: EpoxyRecyclerView
 
     var projects = emptyList<Project>()
 
@@ -31,50 +31,13 @@ class PortfolioFragment: BaseFragment() {
         return inflater.inflate(R.layout.fragment_portfolio, container, false)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        recyclerView = view.findViewById(R.id.recycler)
-
-        recyclerView.setController(object : EpoxyController() {
-            override fun buildModels() {
-                logo {
-                    id("erksn_logo")
-                }
-
-                if (projects.isEmpty()) {
-                    loading {
-                        id("loading")
-                    }
-                } else {
-                    projects.onEach { project ->
-                        project {
-                            id(project.id)
-                            title(project.title)
-                            imageUrl(project.imageUrl)
-
-                            textColor(Color.parseColor(project.textColor))
-                            backgroundColor(Color.parseColor(project.backgroundColor))
-
-                            listener { holder ->
-                                findNavController().navigate(
-                                    PortfolioFragmentDirections.actionPortfolioFragmentToProjectDetailFragment(
-                                        project.id
-                                    )
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        })
-
-    }
-
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        viewModel.data.observe(this, Observer {
+        recyclerView = requireView().findViewById(R.id.recycler)
+        recyclerView.setController(ProjectController())
+
+        viewModel.data.observe(viewLifecycleOwner, Observer {
             projects = when (it) {
                 is PortfolioState.Data.Loading -> emptyList()
                 is PortfolioState.Data.Done -> it.projects
@@ -82,7 +45,7 @@ class PortfolioFragment: BaseFragment() {
             recyclerView.requestModelBuild()
         })
 
-        viewModel.errors.observe(this, Observer {
+        viewModel.errors.observe(viewLifecycleOwner, Observer {
             if (!it.isHandled) {
                 it.handle()
                 when (it) {
@@ -101,5 +64,40 @@ class PortfolioFragment: BaseFragment() {
                 }
             }
         }.show()
+    }
+
+    inner class ProjectController : EpoxyController() {
+        override fun buildModels() {
+            logo {
+                id("erksn_logo")
+            }
+
+            if (projects.isEmpty()) {
+                loading {
+                    id("loading")
+                }
+            } else {
+                projects.onEach { project ->
+                    addProject(project)
+                }
+            }
+        }
+
+        private fun addProject(project: Project) = project {
+            id(project.id)
+            title(project.title)
+            imageUrl(project.imageUrl)
+
+            textColor(Color.parseColor(project.textColor))
+            backgroundColor(Color.parseColor(project.backgroundColor))
+
+            listener {
+                findNavController().navigate(
+                    PortfolioFragmentDirections.actionPortfolioFragmentToProjectDetailFragment(
+                        project.id
+                    )
+                )
+            }
+        }
     }
 }

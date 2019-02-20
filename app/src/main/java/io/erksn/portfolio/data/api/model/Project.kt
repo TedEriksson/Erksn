@@ -5,5 +5,7 @@ data class Project(
     val title: String,
     val imageUrl: String,
     val textColor: String,
-    val backgroundColor: String
+    val backgroundColor: String,
+    val appUrl: String?,
+    val tagline: String?
 )
